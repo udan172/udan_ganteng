@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pemetaan Awal Preferensi Belajar Siswa SD - VARK</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2pdf CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                        },
+                        eduBlue: '#1e40af',
+                        eduYellow: '#f59e0b',
+                        eduPurple: '#7e22ce',
+                        eduRed: '#dc2626'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .custom-checkbox:checked + div {
+            border-color: #16a34a;
+            background-color: #f0fdf4;
+        }
+
+        .custom-checkbox:checked + div .check-icon {
+            display: flex;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; }
+            .page-break { page-break-before: always; }
+        }
+    </style>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* =====================================================
+           TEMA PENDIDIKAN (dekoratif saja - tidak mengubah logika)
+           ===================================================== */
+        :root {
+            --edu-paper: #fffdf6;
+            --edu-line: rgba(59,130,246,.16);
+            --edu-margin: rgba(239,68,68,.30);
+        }
+
+        /* Latar: kertas buku tulis bergaris + garis margin merah */
+        body {
+            background-color: var(--edu-paper);
+            background-image:
+                linear-gradient(90deg, transparent 0, transparent 47px, var(--edu-margin) 47px, var(--edu-margin) 49px, transparent 49px),
+                repeating-linear-gradient(180deg, transparent 0, transparent 31px, var(--edu-line) 31px, var(--edu-line) 32px);
+            background-size: auto, auto;
+            background-attachment: fixed;
+        }
+
+        /* Judul memakai font ceria (hanya layar, bukan laporan PDF) */
+        header h1,
+        #step-identity h2,
+        #questions-container h4,
+        .edu-bubble,
+        .edu-chalk {
+            font-family: 'Fredoka', 'Inter', sans-serif;
+        }
+
+        /* Garis krayon warna-warni di bawah header */
+        header.sticky { position: sticky; }
+        header.sticky::after {
+            content: "";
+            position: absolute; left: 0; right: 0; bottom: -4px; height: 4px;
+            background: repeating-linear-gradient(90deg,
+                #ef4444 0 40px, #f59e0b 40px 80px, #22c55e 80px 120px,
+                #3b82f6 120px 160px, #a855f7 160px 200px);
+        }
+
+        main, footer { position: relative; z-index: 1; }
+
+        /* Lapisan simbol melayang */
+        .edu-decor { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .edu-decor span {
+            position: absolute;
+            opacity: .55;
+            animation: eduFloat 7s ease-in-out infinite;
+            animation-delay: var(--d, 0s);
+            transform: rotate(var(--r, 0deg));
+            user-select: none;
+        }
+        .edu-decor .chalk {
+            font-family: 'Fredoka', sans-serif; font-weight: 700; letter-spacing: .05em; opacity: .28;
+        }
+        @keyframes eduFloat {
+            0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+            50%      { transform: translateY(-14px) rotate(calc(var(--r, 0deg) + 6deg)); }
+        }
+        @media (prefers-reduced-motion: reduce) { .edu-decor span, .edu-owl-wave { animation: none !important; } }
+        @media (max-width: 640px) { .edu-decor .chalk { display: none; } }
+
+        /* Banner identitas */
+        .edu-banner-pattern {
+            background-image:
+                radial-gradient(rgba(255,255,255,.12) 2px, transparent 2px),
+                radial-gradient(rgba(255,255,255,.08) 2px, transparent 2px);
+            background-size: 28px 28px, 28px 28px;
+            background-position: 0 0, 14px 14px;
+        }
+        .edu-chip {
+            background: rgba(255,255,255,.16);
+            border: 1px solid rgba(255,255,255,.30);
+            color: #ecfdf5;
+            padding: .25rem .75rem;
+            border-radius: 9999px;
+            font-size: .75rem; font-weight: 600;
+            backdrop-filter: blur(2px);
+        }
+
+        /* Maskot burung hantu */
+        .edu-owl-wave { transform-origin: 50% 90%; animation: eduWave 3.5s ease-in-out infinite; }
+        @keyframes eduWave {
+            0%, 100% { transform: rotate(-3deg); }
+            50%      { transform: rotate(3deg); }
+        }
+        .edu-bubble {
+            position: relative;
+            background: #fff; color: #065f46;
+            border: 2px solid #a7f3d0; border-radius: 1rem;
+            padding: .6rem .9rem; font-weight: 600; font-size: .9rem; line-height: 1.3;
+            box-shadow: 0 4px 12px rgba(16,185,129,.12);
+        }
+        .edu-bubble::before {
+            content: ""; position: absolute; left: -9px; top: 50%; margin-top: -8px;
+            border: 8px solid transparent; border-right-color: #a7f3d0; border-left: 0;
+        }
+        .edu-bubble::after {
+            content: ""; position: absolute; left: -6px; top: 50%; margin-top: -6px;
+            border: 6px solid transparent; border-right-color: #fff; border-left: 0;
+        }
+        .edu-bubble.on-green { background: rgba(255,255,255,.95); }
+
+        /* Kartu soal: strip warna + simbol pelajaran */
+        #questions-container > div {
+            position: relative; overflow: hidden;
+            border-left: 6px solid var(--qc, #10b981);
+        }
+        #questions-container > div::after {
+            content: var(--qe, "📚");
+            position: absolute; right: 14px; top: 8px;
+            font-size: 2.2rem; opacity: .28; pointer-events: none;
+        }
+        #questions-container h4 { padding-right: 2.75rem; }
+        #questions-container span.bg-emerald-100::before { content: "⭐ "; }
+
+        #questions-container > div:nth-child(8n+1) { --qc:#10b981; --qe:"📚"; }
+        #questions-container > div:nth-child(8n+2) { --qc:#3b82f6; --qe:"✏️"; }
+        #questions-container > div:nth-child(8n+3) { --qc:#f59e0b; --qe:"🔬"; }
+        #questions-container > div:nth-child(8n+4) { --qc:#a855f7; --qe:"🎨"; }
+        #questions-container > div:nth-child(8n+5) { --qc:#ef4444; --qe:"🧮"; }
+        #questions-container > div:nth-child(8n+6) { --qc:#06b6d4; --qe:"🌍"; }
+        #questions-container > div:nth-child(8n+7) { --qc:#ec4899; --qe:"💡"; }
+        #questions-container > div:nth-child(8n+8) { --qc:#84cc16; --qe:"🎒"; }
+
+        /* Kartu utama sedikit lebih "ceria" */
+        #step-identity { border: 2px solid #a7f3d0; }
+
+        @media print { .edu-decor { display: none !important; } }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Definisi maskot burung hantu (dekoratif) -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="edu-owl" viewBox="0 0 120 138">
+                <!-- sayap -->
+                <ellipse cx="20" cy="88" rx="10" ry="24" fill="#9a5a24" transform="rotate(12 20 88)"/>
+                <ellipse cx="100" cy="88" rx="10" ry="24" fill="#9a5a24" transform="rotate(-12 100 88)"/>
+                <!-- badan -->
+                <ellipse cx="60" cy="82" rx="40" ry="44" fill="#c2763a"/>
+                <ellipse cx="60" cy="98" rx="26" ry="28" fill="#fde7c3"/>
+                <path d="M46 92q5 5 10 0M64 92q5 5 10 0M46 106q5 5 10 0M64 106q5 5 10 0M55 118q5 5 10 0" stroke="#e5be86" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                <!-- mata -->
+                <circle cx="43" cy="68" r="15" fill="#fff" stroke="#7c4a1e" stroke-width="3"/>
+                <circle cx="77" cy="68" r="15" fill="#fff" stroke="#7c4a1e" stroke-width="3"/>
+                <circle cx="45" cy="69" r="7" fill="#1e293b"/>
+                <circle cx="75" cy="69" r="7" fill="#1e293b"/>
+                <circle cx="47.5" cy="66.5" r="2.4" fill="#fff"/>
+                <circle cx="77.5" cy="66.5" r="2.4" fill="#fff"/>
+                <!-- paruh -->
+                <polygon points="54,78 66,78 60,90" fill="#f59e0b"/>
+                <!-- pipi -->
+                <circle cx="30" cy="84" r="5" fill="#f9a8a8" opacity=".55"/>
+                <circle cx="90" cy="84" r="5" fill="#f9a8a8" opacity=".55"/>
+                <!-- topi toga -->
+                <path d="M32 38v10q28 12 56 0V38l-28 12z" fill="#334155"/>
+                <polygon points="60,10 108,28 60,46 12,28" fill="#1e293b"/>
+                <polygon points="60,10 108,28 60,46 12,28" fill="none" stroke="#475569" stroke-width="1.5"/>
+                <line x1="60" y1="28" x2="100" y2="33" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="100" y1="33" x2="100" y2="52" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="100" cy="54" r="4" fill="#f59e0b"/>
+                <circle cx="60" cy="28" r="3.5" fill="#f59e0b"/>
+                <!-- kaki -->
+                <ellipse cx="48" cy="128" rx="9" ry="4.5" fill="#f59e0b"/>
+                <ellipse cx="72" cy="128" rx="9" ry="4.5" fill="#f59e0b"/>
+            </symbol>
+        </defs>
+    </svg>
+
+    <!-- Lapisan simbol pendidikan melayang (dekoratif) -->
+    <div class="edu-decor no-print" aria-hidden="true">
+        <span style="left:1.5%; top:14%; font-size:2.6rem; --r:-12deg; --d:0s">📚</span>
+        <span style="right:2%;  top:17%; font-size:2.4rem; --r:18deg;  --d:1.2s">✏️</span>
+        <span style="left:2.5%; top:48%; font-size:2.8rem; --r:8deg;   --d:2.1s">🎒</span>
+        <span style="right:1.5%;top:50%; font-size:2.6rem; --r:-10deg; --d:.6s">🔬</span>
+        <span style="left:1.5%; top:80%; font-size:2.4rem; --r:-6deg;  --d:3s">🧮</span>
+        <span style="right:2.5%;top:82%; font-size:2.6rem; --r:14deg;  --d:1.8s">🎨</span>
+        <span style="left:1%;   top:30%; font-size:1.6rem; --r:0deg;   --d:2.6s">⭐</span>
+        <span style="right:1%;  top:34%; font-size:1.6rem; --r:0deg;   --d:.9s">💡</span>
+        <span style="left:1%;   top:65%; font-size:1.7rem; --r:0deg;   --d:1.5s">🌍</span>
+        <span style="right:1%;  top:66%; font-size:1.6rem; --r:0deg;   --d:3.4s">⭐</span>
+        <span style="left:1.2%; top:92%; font-size:1.7rem; --r:0deg;   --d:.3s">📐</span>
+        <span style="right:1.2%;top:94%; font-size:1.7rem; --r:0deg;   --d:2.2s">🚀</span>
+        <span class="chalk" style="left:4%;  top:38%; font-size:1.7rem; color:#2563eb; --r:-8deg; --d:1s">ABC</span>
+        <span class="chalk" style="right:4%; top:42%; font-size:1.7rem; color:#16a34a; --r:7deg;  --d:2s">123</span>
+        <span class="chalk" style="left:3.5%;top:72%; font-size:1.5rem; color:#dc2626; --r:6deg;  --d:.4s">2+3=5</span>
+        <span class="chalk" style="right:3.5%;top:74%;font-size:1.5rem; color:#9333ea; --r:-6deg; --d:1.7s">a² + b²</span>
+    </div>
+
+
+    <!-- Header Section -->
+    <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-30 no-print">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-md">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-800 leading-tight text-sm sm:text-base">INSTRUMEN PEMETAAN PREFERENSI BELAJAR</h1>
+                    <p class="text-xs text-slate-500">Berbasis Kerangka VARK (Visual, Aural, Read/Write, Kinesthetic)</p>
+                </div>
+            </div>
+            <div class="text-right hidden sm:block">
+                <span class="text-xs bg-amber-100 text-amber-800 font-semibold px-2.5 py-1 rounded-full border border-amber-200">
+                    <i class="fa-solid fa-flask mr-1"></i> Draf Pengembangan
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto w-full p-4 sm:p-6 flex-grow">
+
+        <!-- STEP 1: FORM LOGIN & IDENTITAS -->
+        <div id="step-identity" class="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transition-all duration-300">
+            <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 p-6 sm:p-8 text-white relative edu-banner-pattern overflow-hidden">
+                <div class="absolute right-4 bottom-2 opacity-10 text-8xl pointer-events-none">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+                <!-- Maskot -->
+                <div class="hidden lg:flex absolute right-8 top-6 items-end gap-3 pointer-events-none" aria-hidden="true">
+                    <div class="edu-bubble on-green mb-16 max-w-[150px]">Halo! Ayo kenali gaya belajarmu! 🌟</div>
+                    <svg class="edu-owl-wave drop-shadow-lg" width="120" height="138"><use href="#edu-owl"/></svg>
+                </div>
+                <span class="bg-emerald-500/30 text-emerald-100 border border-emerald-300/30 text-xs px-3 py-1 rounded-full uppercase tracking-wider font-semibold">
+                    Pengkategorian Style Learning Siswa SD
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold mt-3">Selamat Datang di Platform Pemetaan Belajar</h2>
+                <p class="text-emerald-100 text-sm sm:text-base mt-2 max-w-2xl">
+                    Silakan isi identitas siswa dan pihak pendamping terlebih dahulu untuk memulai pengisian instrumen pemetaan preferensi belajar.
+                </p>
+                
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="edu-chip">👀 Visual</span>
+                    <span class="edu-chip">👂 Auditori</span>
+                    <span class="edu-chip">📖 Baca/Tulis</span>
+                    <span class="edu-chip">🤸 Kinestetik</span>
+                </div>
+                <div class="mt-4 pt-4 border-t border-emerald-500/40 text-xs text-emerald-100 flex flex-wrap gap-y-1 gap-x-4">
+                    <span><i class="fa-solid fa-user-gear mr-1"></i> <strong>Pengembang:</strong> Sandy Ihsan Amarulloh, S.Pd., M.Pd.,CH.,CHt.</span>
+                </div>
+            </div>
+
+            <form id="form-login" onsubmit="handleStartTest(event)" class="p-6 sm:p-8 space-y-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <!-- Nama Siswa -->
+                    <div class="space-y-2">
+                        <label for="nama_siswa" class="block text-sm font-semibold text-slate-700">
+                            <i class="fa-solid fa-user text-emerald-600 mr-1.5"></i> Nama Lengkap Siswa <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="nama_siswa" required placeholder="Masukkan nama siswa..." class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                    </div>
+
+                    <!-- Jenjang / Kelas -->
+                    <div class="space-y-2">
+                        <label for="jenjang" class="block text-sm font-semibold text-slate-700">
+                            <i class="fa-solid fa-school text-emerald-600 mr-1.5"></i> Jenjang / Kelas <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="jenjang" required placeholder="Contoh: SD Kelas 4A" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                    </div>
+
+                    <!-- Jenis Kelamin -->
+                    <div class="space-y-2">
+                        <label for="jenis_kelamin" class="block text-sm font-semibold text-slate-700">
+                            <i class="fa-solid fa-venus-mars text-emerald-600 mr-1.5"></i> Jenis Kelamin <span class="text-red-500">*</span>
+                        </label>
+                        <select id="jenis_kelamin" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition bg-white">
+                            <option value="">-- Pilih Jenis Kelamin --</option>
+                            <option value="Laki-laki">Laki-laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
+                    </div>
+
+                    <!-- Tanggal Tes -->
+                    <div class="space-y-2">
+                        <label for="tanggal_tes" class="block text-sm font-semibold text-slate-700">
+                            <i class="fa-solid fa-calendar-day text-emerald-600 mr-1.5"></i> Tanggal Tes <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" id="tanggal_tes" required class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                    </div>
+
+                    <!-- Validator -->
+                    <div class="space-y-2">
+                        <label for="validator" class="block text-sm font-semibold text-slate-700">
+                            <i class="fa-solid fa-user-check text-emerald-600 mr-1.5"></i> Validator
+                        </label>
+                        <input type="text" id="validator" value="Sandy Ihsan Amarulloh, S.Pd., M.Pd.,CH.,CHt." class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 outline-none cursor-not-allowed" readonly>
+                    </div>
+
+                    <!-- Guru Pendamping -->
+                    <div class="space-y-2">
+                        <label for="guru_pendamping" class="block text-sm font-semibold text-slate-700">
+                            <i class="fa-solid fa-chalkboard-user text-emerald-600 mr-1.5"></i> Guru Pendamping / Pamong <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="guru_pendamping" required placeholder="Nama Guru Pendamping..." class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex justify-end">
+                    <button type="submit" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition transform active:scale-95 flex items-center justify-center gap-2">
+                        <span>Mulai Pengisian Angket</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- STEP 2: ANGKET INSTRUMEN (16 BUTIR) -->
+        <div id="step-questionnaire" class="hidden space-y-6">
+            <!-- Info Bar -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500">Siswa ID</p>
+                        <p class="font-bold text-slate-800 text-sm" id="display-siswa-nama">-</p>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg">
+                    <i class="fa-solid fa-info-circle text-emerald-600 mr-1"></i> Kamu boleh memilih <strong>lebih dari satu pilihan</strong> jika sesuai.
+                </div>
+            </div>
+
+            <!-- Maskot penyemangat -->
+            <div class="flex items-center gap-3 no-print" aria-hidden="true">
+                <svg class="edu-owl-wave flex-shrink-0 drop-shadow" width="64" height="74"><use href="#edu-owl"/></svg>
+                <div class="edu-bubble">Semangat, teman pintar! Pilih yang paling cocok denganmu ya 🎒✏️</div>
+            </div>
+
+            <!-- Petunjuk Pengisian Box -->
+            <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl text-amber-900 text-xs sm:text-sm leading-relaxed">
+                <h3 class="font-bold mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation text-amber-600"></i> Petunjuk Pengisian:
+                </h3>
+                <p>Bacalah setiap pertanyaan di bawah ini. Pilih jawaban yang paling sesuai dengan hal yang biasanya kamu sukai ketika belajar. <strong>Kamu boleh memilih lebih dari satu jawaban</strong> jika beberapa pilihan sama-sama cocok dengan dirimu. Tidak ada jawaban benar atau salah.</p>
+            </div>
+
+            <!-- Questionnaire Form -->
+            <form id="form-vark" onsubmit="handleCalculateResult(event)" class="space-y-6">
+                <div id="questions-container" class="space-y-6">
+                    <!-- Dynamic Questions injected here -->
+                </div>
+
+                <!-- Submit Button Container -->
+                <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <p class="text-xs text-slate-500">
+                        *Pastikan semua nomor telah diperiksa sebelum menyelesaikan instrumen.
+                    </p>
+                    <button type="submit" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>Proses & Lihat Hasil Diagnosa</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- STEP 3: REKAPAN HASIL DIAGNOSA -->
+        <div id="step-result" class="hidden space-y-8">
+            
+            <!-- Floating Print Button -->
+            <div class="no-print flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <button onclick="backToQuestions()" class="text-slate-600 hover:text-slate-800 text-sm font-semibold flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Kembali ke Angket
+                </button>
+                <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-file-pdf"></i> Unduh Laporan PDF
+                </button>
+            </div>
+
+            <!-- Maskot perayaan (tidak ikut PDF) -->
+            <div class="no-print flex items-center gap-3" aria-hidden="true">
+                <svg class="edu-owl-wave flex-shrink-0 drop-shadow" width="64" height="74"><use href="#edu-owl"/></svg>
+                <div class="edu-bubble">Hebat! Angketmu sudah selesai 🎉 Ini hasil pemetaannya.</div>
+            </div>
+
+            <!-- Printable Report Content -->
+            <div id="pdf-content" class="bg-white rounded-2xl shadow-xl border border-slate-200 p-6 sm:p-10 space-y-8">
+                
+                <!-- Report Header -->
+                <div class="border-b-2 border-slate-800 pb-6 text-center space-y-2">
+                    <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight uppercase">
+                        REKAPAN HASIL DIAGNOSA PEMETAAN AWAL PREFERENSI BELAJAR SISWA SD
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-600 font-medium">
+                        Berbasis Kerangka VARK (Visual, Aural, Read/Write, Kinesthetic)
+                    </p>
+                    <p class="text-xs text-slate-500 italic">
+                        Pengembang: Sandy Ihsan Amarulloh, S.Pd., M.Pd.,CH.,CHt.
+                    </p>
+                </div>
+
+                <!-- Student & Test Info Matrix -->
+                <div class="bg-slate-50 p-4 sm:p-6 rounded-xl border border-slate-200 text-xs sm:text-sm">
+                    <h3 class="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide border-b pb-1">
+                        A. Identitas Siswa & Administrasi Tes
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8">
+                        <div class="flex justify-between sm:justify-start gap-2">
+                            <span class="text-slate-500 w-36">Nama Siswa</span>
+                            <span class="font-semibold text-slate-800">: <span id="res-nama">-</span></span>
+                        </div>
+                        <div class="flex justify-between sm:justify-start gap-2">
+                            <span class="text-slate-500 w-36">Tanggal Tes</span>
+                            <span class="font-semibold text-slate-800">: <span id="res-tanggal">-</span></span>
+                        </div>
+                        <div class="flex justify-between sm:justify-start gap-2">
+                            <span class="text-slate-500 w-36">Jenjang / Kelas</span>
+                            <span class="font-semibold text-slate-800">: <span id="res-jenjang">-</span></span>
+                        </div>
+                        <div class="flex justify-between sm:justify-start gap-2">
+                            <span class="text-slate-500 w-36">Validator</span>
+                            <span class="font-semibold text-slate-800">: <span id="res-validator">-</span></span>
+                        </div>
+                        <div class="flex justify-between sm:justify-start gap-2">
+                            <span class="text-slate-500 w-36">Jenis Kelamin</span>
+                            <span class="font-semibold text-slate-800">: <span id="res-jk">-</span></span>
+                        </div>
+                        <div class="flex justify-between sm:justify-start gap-2">
+                            <span class="text-slate-500 w-36">Guru Pendamping</span>
+                            <span class="font-semibold text-slate-800">: <span id="res-guru">-</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scores & Percentages Table -->
+                <div class="space-y-3">
+                    <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide border-b pb-1">
+                        B. Skor dan Persentase Per Dimensi VARK
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs sm:text-sm border-collapse border border-slate-300">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700">
+                                    <th class="p-2.5 border border-slate-300">Dimensi</th>
+                                    <th class="p-2.5 border border-slate-300">Deskripsi Singkat</th>
+                                    <th class="p-2.5 border border-slate-300 text-center">Skor Terpilih ($S_j$)</th>
+                                    <th class="p-2.5 border border-slate-300 text-center">Persentase ($P_j$)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scores-table-body">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-[11px] text-slate-500 italic">
+                        *Catatan: Rumus Persentase $P_j = (S_j / 16) \times 100\%$. Persentase total dapat melebihi 100% karena siswa diperbolehkan memilih lebih dari satu alternatif per butir.
+                    </p>
+                </div>
+
+                <!-- Graph and Category Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                    <!-- Chart -->
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <h4 class="text-xs font-bold text-slate-600 mb-2 text-center uppercase">Grafik Profil Preferensi Belajar</h4>
+                        <div class="relative h-52 w-full flex items-center justify-center">
+                            <canvas id="varkChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Category Result Box -->
+                    <div class="bg-emerald-50 border-2 border-emerald-500/30 p-5 rounded-xl space-y-3">
+                        <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider block">
+                            Hasil Diagnosa Utama
+                        </span>
+                        <div class="text-xl sm:text-2xl font-black text-emerald-900" id="res-kategori">
+                            -
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed" id="res-interpretasi">
+                            -
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Interpretasi dan Catatan Pedagogis -->
+                <div class="space-y-2 border-t pt-4">
+                    <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wide">
+                        C. Catatan Interpretasi & Rekomendasi
+                    </h3>
+                    <div class="bg-amber-50/60 border border-amber-200 p-4 rounded-xl text-xs sm:text-sm text-amber-950 leading-relaxed space-y-2">
+                        <p>
+                            <strong>Peringatan Interpretasi:</strong> Skor tertinggi hanya menunjukkan dimensi yang paling banyak dipilih pada angket ini. Hasil ini menggambarkan <em>preferensi yang disukai siswa</em>, bukan tipe tetap yang menentukan kapasitas intelektual atau keberhasilan belajar.
+                        </p>
+                        <p>
+                            <strong>Rekomendasi bagi Guru Pendamping:</strong> Gunakan hasil pemetaan ini untuk merancang diferensiasi proses pembelajaran (pembelajaran bervariasi) yang mengakomodasi gaya visual, auditori, baca/tulis, maupun kinestetik siswa.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Signatures Section -->
+                <div class="pt-8 page-break">
+                    <div class="grid grid-cols-2 gap-8 text-center text-xs sm:text-sm">
+                        <!-- Validator TTD -->
+                        <div class="space-y-16">
+                            <div>
+                                <p class="text-slate-600">Validator Instrumen,</p>
+                                <p class="text-[11px] text-slate-400">Pengembang VARK SD</p>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900 underline" id="ttd-validator-nama">
+                                    Sandy Ihsan Amarulloh, S.Pd., M.Pd.,CH.,CHt.
+                                </p>
+                                <p class="text-slate-500 text-[11px]">NIP / NUPTK: -</p>
+                            </div>
+                        </div>
+
+                        <!-- Guru Pendamping TTD -->
+                        <div class="space-y-16">
+                            <div>
+                                <p class="text-slate-600">Guru Pendamping / Pamong,</p>
+                                <p class="text-[11px] text-slate-400" id="ttd-tanggal-label">Tanggal: -</p>
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-900 underline" id="ttd-guru-nama">
+                                    (...................................................)
+                                </p>
+                                <p class="text-slate-500 text-[11px]">Guru Kelas / Pendamping</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-4 no-print text-center text-xs text-slate-500">
+        <div class="max-w-5xl mx-auto px-4">
+            <p>Instrumen Pemetaan Awal Preferensi Belajar Siswa SD Berbasis VARK</p>
+            <p class="mt-0.5 text-slate-400">Dikembangkan oleh: Sandy Ihsan Amarulloh, S.Pd., M.Pd.,CH.,CHt.</p>
+            <p class="mt-2 text-xl tracking-widest" aria-hidden="true">📚 ✏️ 🎒 🔬 🎨 🧮</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Data and Logic -->
+    <script>
+        // Data Questions from Instrument Document
+        const questionsData = [
+            {
+                no: 1,
+                question: "Saat belajar hal baru, aku lebih suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Melihat gambar atau bagan." },
+                    { code: "A", letter: "B", text: "Mendengarkan penjelasan orang lain." },
+                    { code: "R", letter: "C", text: "Membaca buku atau menulis catatan." },
+                    { code: "K", letter: "D", text: "Mencoba sendiri dengan alat atau benda." }
+                ]
+            },
+            {
+                no: 2,
+                question: "Saat belajar langkah-langkah membuat sesuatu, aku lebih suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Melihat gambar setiap langkah." },
+                    { code: "A", letter: "B", text: "Mendengarkan orang menjelaskan langkahnya." },
+                    { code: "R", letter: "C", text: "Membaca petunjuk tertulis." },
+                    { code: "K", letter: "D", text: "Langsung mencoba membuatnya." }
+                ]
+            },
+            {
+                no: 3,
+                question: "Jika aku belum memahami pelajaran, aku biasanya...",
+                options: [
+                    { code: "V", letter: "A", text: "Mencari gambar yang membantu menjelaskan." },
+                    { code: "A", letter: "B", text: "Meminta orang menjelaskan kembali." },
+                    { code: "R", letter: "C", text: "Membaca ulang materi atau catatan." },
+                    { code: "K", letter: "D", text: "Mencoba contoh soal atau kegiatan." }
+                ]
+            },
+            {
+                no: 4,
+                question: "Saat menceritakan hasil pekerjaan, aku lebih suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Menunjukkan gambar atau bagan." },
+                    { code: "A", letter: "B", text: "Menceritakannya secara lisan." },
+                    { code: "R", letter: "C", text: "Menuliskan hasilnya." },
+                    { code: "K", letter: "D", text: "Memperagakan cara melakukannya." }
+                ]
+            },
+            {
+                no: 5,
+                question: "Saat mempelajari materi yang sulit, aku terbantu oleh...",
+                options: [
+                    { code: "V", letter: "A", text: "Gambar yang menunjukkan hubungan antarbagian." },
+                    { code: "A", letter: "B", text: "Diskusi dan penjelasan lisan." },
+                    { code: "R", letter: "C", text: "Bacaan atau rangkuman tertulis." },
+                    { code: "K", letter: "D", text: "Contoh nyata yang bisa dicoba." }
+                ]
+            },
+            {
+                no: 6,
+                question: "Ketika mengingat pelajaran kemarin, aku lebih mudah mengingat...",
+                options: [
+                    { code: "V", letter: "A", text: "Gambar atau bentuk yang pernah kulihat." },
+                    { code: "A", letter: "B", text: "Penjelasan yang pernah kudengar." },
+                    { code: "R", letter: "C", text: "Tulisan atau catatan yang pernah kubaca." },
+                    { code: "K", letter: "D", text: "Kegiatan yang pernah kulakukan." }
+                ]
+            },
+            {
+                no: 7,
+                question: "Saat belajar memakai alat baru, aku lebih suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Melihat gambar cara penggunaannya." },
+                    { code: "A", letter: "B", text: "Mendengarkan penjelasan cara menggunakannya." },
+                    { code: "R", letter: "C", text: "Membaca petunjuk penggunaannya." },
+                    { code: "K", letter: "D", text: "Mencoba menggunakan alat tersebut." }
+                ]
+            },
+            {
+                no: 8,
+                question: "Saat mengerjakan soal yang sulit, aku lebih suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Menggambar atau membuat bagan soal." },
+                    { code: "A", letter: "B", text: "Berdiskusi dengan teman atau bertanya." },
+                    { code: "R", letter: "C", text: "Membaca soal dan menuliskan langkahnya." },
+                    { code: "K", letter: "D", text: "Mencoba beberapa cara untuk menemukan jawaban." }
+                ]
+            },
+            {
+                no: 9,
+                question: "Saat guru menjelaskan pelajaran, aku terbantu jika...",
+                options: [
+                    { code: "V", letter: "A", text: "Ada gambar atau diagram yang jelas." },
+                    { code: "A", letter: "B", text: "Penjelasannya disampaikan secara lisan." },
+                    { code: "R", letter: "C", text: "Ada tulisan atau catatan yang bisa kubaca." },
+                    { code: "K", letter: "D", text: "Ada contoh atau demonstrasi langsung." }
+                ]
+            },
+            {
+                no: 10,
+                question: "Untuk memahami hubungan antara beberapa hal, aku lebih suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Melihat bagan yang menghubungkan semuanya." },
+                    { code: "A", letter: "B", text: "Mendengarkan orang menjelaskan hubungannya." },
+                    { code: "R", letter: "C", text: "Membaca penjelasan tertulis." },
+                    { code: "K", letter: "D", text: "Menggunakan benda atau contoh nyata." }
+                ]
+            },
+            {
+                no: 11,
+                question: "Saat belajar untuk ulangan, aku biasanya suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Membuat peta pikiran atau gambar." },
+                    { code: "A", letter: "B", text: "Menjelaskan pelajaran dengan suara keras." },
+                    { code: "R", letter: "C", text: "Membaca dan menulis kembali catatan." },
+                    { code: "K", letter: "D", text: "Berlatih mengerjakan soal." }
+                ]
+            },
+            {
+                no: 12,
+                question: "Jika petunjuk tugas belum jelas, aku lebih suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Melihat contoh gambar hasil tugas." },
+                    { code: "A", letter: "B", text: "Meminta penjelasan secara lisan." },
+                    { code: "R", letter: "C", text: "Membaca petunjuk tertulis lagi." },
+                    { code: "K", letter: "D", text: "Mencoba mengerjakan satu bagian terlebih dahulu." }
+                ]
+            },
+            {
+                no: 13,
+                question: "Saat mempelajari data atau angka, aku lebih terbantu oleh...",
+                options: [
+                    { code: "V", letter: "A", text: "Grafik atau diagram." },
+                    { code: "A", letter: "B", text: "Penjelasan lisan tentang arti angka." },
+                    { code: "R", letter: "C", text: "Tabel dan uraian tertulis." },
+                    { code: "K", letter: "D", text: "Menghitung atau mengolah data secara langsung." }
+                ]
+            },
+            {
+                no: 14,
+                question: "Saat belajar bersama teman, aku paling suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Membuat poster atau gambar." },
+                    { code: "A", letter: "B", text: "Berdiskusi dan saling menjelaskan." },
+                    { code: "R", letter: "C", text: "Membuat rangkuman tertulis." },
+                    { code: "K", letter: "D", text: "Melakukan percobaan atau permainan belajar." }
+                ]
+            },
+            {
+                no: 15,
+                question: "Saat mempelajari hal yang belum pernah kutemui, aku lebih suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Melihat gambar atau ilustrasinya." },
+                    { code: "A", letter: "B", text: "Mendengarkan cerita atau penjelasannya." },
+                    { code: "R", letter: "C", text: "Membaca informasi tentang hal itu." },
+                    { code: "K", letter: "D", text: "Melihat atau mencoba contoh nyatanya." }
+                ]
+            },
+            {
+                no: 16,
+                question: "Untuk menguasai keterampilan baru, aku lebih suka...",
+                options: [
+                    { code: "V", letter: "A", text: "Melihat gambar yang menunjukkan caranya." },
+                    { code: "A", letter: "B", text: "Mendengarkan arahan orang lain." },
+                    { code: "R", letter: "C", text: "Membaca urutan langkahnya." },
+                    { code: "K", letter: "D", text: "Berlatih melakukannya sendiri." }
+                ]
+            }
+        ];
+
+        // Global State
+        let studentData = {};
+        let myChart = null;
+
+        // Initialize Today's Date
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('tanggal_tes').value = today;
+            renderQuestions();
+        });
+
+        // Render Questions in Step 2
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            questionsData.forEach((q) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200 transition hover:shadow-md';
+                
+                let optionsHTML = '';
+                q.options.forEach((opt) => {
+                    optionsHTML += `
+                        <label class="cursor-pointer group relative block">
+                            <input type="checkbox" name="q_${q.no}" value="${opt.code}" class="custom-checkbox sr-only">
+                            <div class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 group-hover:border-emerald-400 group-hover:bg-emerald-50/50 transition">
+                                <div class="w-7 h-7 rounded-lg border border-slate-300 bg-white flex items-center justify-center font-bold text-xs text-slate-600 group-hover:border-emerald-500">
+                                    ${opt.letter}
+                                </div>
+                                <span class="text-sm text-slate-700 flex-grow">${opt.text}</span>
+                                <div class="check-icon hidden text-emerald-600 font-bold">
+                                    <i class="fa-solid fa-circle-check text-lg"></i>
+                                </div>
+                            </div>
+                        </label>
+                    `;
+                });
+
+                qCard.innerHTML = `
+                    <div class="flex items-start gap-3 mb-4">
+                        <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-md">
+                            Nomor ${q.no}
+                        </span>
+                        <h4 class="font-semibold text-slate-800 text-sm sm:text-base">${q.question}</h4>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        ${optionsHTML}
+                    </div>
+                `;
+                container.appendChild(qCard);
+            });
+        }
+
+        // Handle Identity Form Submission
+        function handleStartTest(e) {
+            e.preventDefault();
+            studentData = {
+                nama: document.getElementById('nama_siswa').value.trim(),
+                jenjang: document.getElementById('jenjang').value.trim(),
+                jenisKelamin: document.getElementById('jenis_kelamin').value,
+                tanggal: document.getElementById('tanggal_tes').value,
+                validator: document.getElementById('validator').value,
+                guru: document.getElementById('guru_pendamping').value.trim()
+            };
+
+            document.getElementById('display-siswa-nama').innerText = studentData.nama;
+            
+            // Switch Step
+            document.getElementById('step-identity').classList.add('hidden');
+            document.getElementById('step-questionnaire').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Calculate Results based on rules in document
+        function handleCalculateResult(e) {
+            e.preventDefault();
+
+            let scoreV = 0;
+            let scoreA = 0;
+            let scoreR = 0;
+            let scoreK = 0;
+
+            let totalChecked = 0;
+
+            questionsData.forEach((q) => {
+                const checkboxes = document.querySelectorAll(`input[name="q_${q.no}"]:checked`);
+                checkboxes.forEach((cb) => {
+                    totalChecked++;
+                    if (cb.value === 'V') scoreV++;
+                    if (cb.value === 'A') scoreA++;
+                    if (cb.value === 'R') scoreR++;
+                    if (cb.value === 'K') scoreK++;
+                });
+            });
+
+            if (totalChecked === 0) {
+                alert('Mohon isi minimal satu pilihan pada angket sebelum memproses hasil!');
+                return;
+            }
+
+            // Calculations
+            const pctV = ((scoreV / 16) * 100).toFixed(2);
+            const pctA = ((scoreA / 16) * 100).toFixed(2);
+            const pctR = ((scoreR / 16) * 100).toFixed(2);
+            const pctK = ((scoreK / 16) * 100).toFixed(2);
+
+            // Categorization Logic according to section 5
+            const scores = [
+                { dim: 'Visual (V)', score: scoreV, pct: pctV, code: 'V' },
+                { dim: 'Auditori (A)', score: scoreA, pct: pctA, code: 'A' },
+                { dim: 'Read/Write (R)', score: scoreR, pct: pctR, code: 'R' },
+                { dim: 'Kinesthetic (K)', score: scoreK, pct: pctK, code: 'K' }
+            ];
+
+            const maxScore = Math.max(scoreV, scoreA, scoreR, scoreK);
+            let category = '';
+            let interpretation = '';
+
+            if (maxScore === 0) {
+                category = 'Belum Dapat Dikategorikan';
+                interpretation = 'Jawaban belum lengkap atau seluruh skor nol. Data perlu dilengkapi sebelum interpretasi.';
+            } else {
+                const topDims = scores.filter(s => s.score === maxScore);
+                
+                if (topDims.length === 1) {
+                    const top = topDims[0].code;
+                    if (top === 'V') {
+                        category = 'Preferensi Visual Dominan';
+                        interpretation = 'Siswa cenderung paling nyaman belajar melalui gambar, bagan, grafik, diagram, atau representasi visual lainnya.';
+                    } else if (top === 'A') {
+                        category = 'Preferensi Auditori Dominan';
+                        interpretation = 'Siswa cenderung paling nyaman belajar melalui penjelasan lisan, percakapan, diskusi, dan mendengarkan penjelasan.';
+                    } else if (top === 'R') {
+                        category = 'Preferensi Read/Write Dominan';
+                        interpretation = 'Siswa cenderung paling nyaman belajar melalui membaca, menulis, membuat catatan, dan mengolah informasi berbentuk teks.';
+                    } else if (top === 'K') {
+                        category = 'Preferensi Kinestetik Dominan';
+                        interpretation = 'Siswa cenderung paling nyaman belajar melalui pengalaman konkret, demonstrasi, praktik langsung, dan menggunakan benda nyata.';
+                    }
+                } else {
+                    const dimNames = topDims.map(d => d.dim.split(' ')[0]).join(' – ');
+                    category = `Preferensi Campuran (${dimNames})`;
+                    interpretation = `Siswa memiliki kombinasi lebih dari satu preferensi belajar yang kuat secara bersamaan (${dimNames}). Pembelajaran disarankan mengombinasikan strategi dari dimensi-dimensi tersebut.`;
+                }
+            }
+
+            // Populate Report Data
+            document.getElementById('res-nama').innerText = studentData.nama;
+            document.getElementById('res-jenjang').innerText = studentData.jenjang;
+            document.getElementById('res-jk').innerText = studentData.jenisKelamin;
+            document.getElementById('res-tanggal').innerText = formatDate(studentData.tanggal);
+            document.getElementById('res-validator').innerText = studentData.validator;
+            document.getElementById('res-guru').innerText = studentData.guru;
+
+            document.getElementById('res-kategori').innerText = category;
+            document.getElementById('res-interpretasi').innerText = interpretation;
+
+            // Populate Table
+            const tbody = document.getElementById('scores-table-body');
+            tbody.innerHTML = `
+                <tr>
+                    <td class="p-2.5 border border-slate-300 font-semibold text-blue-700">Visual (V)</td>
+                    <td class="p-2.5 border border-slate-300">Gambar, diagram, bagan, grafik, simbol visual</td>
+                    <td class="p-2.5 border border-slate-300 text-center font-bold">${scoreV}</td>
+                    <td class="p-2.5 border border-slate-300 text-center font-bold">${pctV}%</td>
+                </tr>
+                <tr>
+                    <td class="p-2.5 border border-slate-300 font-semibold text-emerald-700">Aural / Auditori (A)</td>
+                    <td class="p-2.5 border border-slate-300">Penjelasan lisan, diskusi, mendengarkan, cerita</td>
+                    <td class="p-2.5 border border-slate-300 text-center font-bold">${scoreA}</td>
+                    <td class="p-2.5 border border-slate-300 text-center font-bold">${pctA}%</td>
+                </tr>
+                <tr>
+                    <td class="p-2.5 border border-slate-300 font-semibold text-purple-700">Read / Write (R)</td>
+                    <td class="p-2.5 border border-slate-300">Membaca buku, catatan tertulis, rangkuman teks</td>
+                    <td class="p-2.5 border border-slate-300 text-center font-bold">${scoreR}</td>
+                    <td class="p-2.5 border border-slate-300 text-center font-bold">${pctR}%</td>
+                </tr>
+                <tr>
+                    <td class="p-2.5 border border-slate-300 font-semibold text-amber-700">Kinesthetic (K)</td>
+                    <td class="p-2.5 border border-slate-300">Praktik langsung, contoh nyata, uji coba, raga</td>
+                    <td class="p-2.5 border border-slate-300 text-center font-bold">${scoreK}</td>
+                    <td class="p-2.5 border border-slate-300 text-center font-bold">${pctK}%</td>
+                </tr>
+            `;
+
+            // Signatures
+            document.getElementById('ttd-validator-nama').innerText = studentData.validator;
+            document.getElementById('ttd-guru-nama').innerText = studentData.guru;
+            document.getElementById('ttd-tanggal-label').innerText = `Tanggal: ${formatDate(studentData.tanggal)}`;
+
+            // Render Chart
+            renderChart(scoreV, scoreA, scoreR, scoreK);
+
+            // Switch to Step 3
+            document.getElementById('step-questionnaire').classList.add('hidden');
+            document.getElementById('step-result').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Render Bar Chart
+        function renderChart(v, a, r, k) {
+            const ctx = document.getElementById('varkChart').getContext('2d');
+            
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Visual (V)', 'Auditori (A)', 'Read/Write (R)', 'Kinestetik (K)'],
+                    datasets: [{
+                        label: 'Skor Pilihan',
+                        data: [v, a, r, k],
+                        backgroundColor: [
+                            '#2563eb', // Blue
+                            '#16a34a', // Green
+                            '#9333ea', // Purple
+                            '#d97706'  // Amber
+                        ],
+                        borderRadius: 6,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 16,
+                            ticks: {
+                                stepSize: 2
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Helper date formatter
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateStr).toLocaleDateString('id-ID', options);
+        }
+
+        // Back Button Logic
+        function backToQuestions() {
+            document.getElementById('step-result').classList.add('hidden');
+            document.getElementById('step-questionnaire').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Download PDF
+        function downloadPDF() {
+            const element = document.getElementById('pdf-content');
+            const opt = {
+                margin:       [0.3, 0.3, 0.3, 0.3],
+                filename:     `Hasil_VARK_${studentData.nama.replace(/\s+/g, '_')}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
